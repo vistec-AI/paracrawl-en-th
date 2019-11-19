@@ -1,86 +1,78 @@
 # step one
 import argparse
 import os
+from tqdm.auto import tqdm
 from pathlib import Path
 from collections import Counter, defaultdict
 from pprint import pprint
 from time import sleep
 from requests import get, head
 from xmlr import xmlparse, xmliter, XMLParsingMethods
+import json
+
+from lxml.etree import iterparse, tostring, XPath
+# import slack
+# client = slack.WebClient(token=os.environ['SLACK_API_TOKEN'])
+
+from utils import (
+    extract_full_domain,
+    extract_registered_domain,
+    extract_suffix,
+    SetEncoder
+)
 
 
-from utils import extract_domain, extract_suffix
-
-
-
-def extract(filename):
+def extract(file_path):
     dataset = {
-        "en": defaultdict(lambda: []),
-        "de": defaultdict(lambda: [])
+        "en": defaultdict(set),
+        "de": defaultdict(set)
     }
     print("Start extracting.")
 
     counter = Counter()
-    with tqdm(total=204522994) as pbar_items:
+
+    # get_tuv = XPath('child::tuv')
+    get_url = XPath('prop[@type="source-document"][1]/text()')
+
+    with tqdm(total=36936714) as pbar_items:
         with tqdm(total=67977) as pbar_domains:
-            for d in xmliter(filename, 'tu'):
-    #             print(d)
+
+            for _, d in iterparse(file_path, tag='tu'):
+                en, de  = d.findall('tuv')
+
 
                 counter['row_counter'] += 1
-                en_url = d['tuv'][0]['prop']
-                de_url = d['tuv'][1]['prop']
 
-                # print("en_urls", en_url)
-                # print("de_urls", de_url)
+                en_url = en.findtext('prop[@type="source-document"]')
+                de_url = de.findtext('prop[@type="source-document"]')
 
                 if en_url == "unknown" or de_url == "unknown":
                     counter['unkown_url_counter'] += 1
                     continue
 
-                if type(en_url) == list:
-                    en_url = en_url[0]
-                if type(de_url) == list:
-                    de_url = de_url[0]
+                en_domain = extract_full_domain(en_url)
+                dataset['en'][en_domain].add(en_url)
 
-                if type(en_url) == str:
-                    en_domain = extract_domain(en_url)
-                    # if not en_domain in dataset['en'].keys():
-                        # dataset['en'][en_domain] = []
-                    # dataset['en'][en_domain].append(en_url)
-                    # else:
-                    # if len(dataset['en'][en_domain] ) == 10:
-                        # continue
-                    dataset['en'][en_domain].append(en_url)
+                de_domain = extract_full_domain(de_url)
+                dataset['de'][de_domain].add(de_url)
 
-                if type(de_url) == str:
-                    de_domain = extract_domain(de_url)
-
-                    # if not de_domain in dataset['de'].keys():
-                    #     dataset['de'][de_domain] = []
-                    # dataset['de'][de_domain].append(de_url)
-                    # else:
-                    # if len(dataset['de'][de_domain]) == 10:
-                        # continue
-                    dataset['de'][de_domain].append(de_url)
-
-
-                if len(dataset['de'].keys()) > counter['domain_counter']:
+                if len(dataset['de']) > counter['domain_counter']:
                     counter['domain_counter'] += 1           
                     pbar_domains.update(1)
-                    
+
                 pbar_items.update(1)
 
-    print("Done.")
+                d.clear()
     return dataset
 
 
 def save(output_path, dataset):
     print("Save result to:", output_path)
     with open(output_path, 'w', encoding="utf-8") as f:    
-        json.dump(dataset, f, ensure_ascii=False)
+        json.dump(dataset, f, ensure_ascii=False, cls=SetEncoder)
 
 
-if name == '__main__':
+if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
 
@@ -90,9 +82,12 @@ if name == '__main__':
     
     args = parser.parse_args()
 
-    input_file_path = args.input
+    input_file_path = args.input_path
     input_file_name = Path(input_file_path).stem
     
-    dataset = extract(filename)
-    
-    save(os.path.join(output_dir, '{}.json'.format(input_file_name)))
+    dataset = extract(input_file_path)
+
+    print('Save file')
+    save(os.path.join(args.output_dir, '{}.json'.format(input_file_name)),
+         dataset)
+    print('Done.')
