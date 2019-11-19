@@ -63,13 +63,14 @@ def extract(file_path):
                 pbar_items.update(1)
 
                 d.clear()
+                # break
     return dataset
 
 
 def save(output_path, dataset):
     print("Save result to:", output_path)
     with open(output_path, 'w', encoding="utf-8") as f:    
-        json.dump(dataset, f, ensure_ascii=False, cls=SetEncoder)
+        json.dump(dataset, f, ensure_ascii=False, cls=SetEncoder, indent=4)
 
 
 if __name__ == '__main__':
