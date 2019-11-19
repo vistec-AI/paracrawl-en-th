@@ -7,5 +7,4 @@ curl https://s3.amazonaws.com/web-language-models/paracrawl/release5/en-de.bicle
 # curl https://s3.amazonaws.com/web-language-models/paracrawl/release5/en-de.bicleaner07.txt.gz > ./data/en-de.bicleaner07.txt.gz 
 
 echo "Extracting paracrawl v5 en-de."
-gunzip -zxvf ./data/en-de.bicleaner07.tmx.gz
-# tar -zxvf ./data/en-de.bicleaner07.txt.gz
+gunzip ./data/en-de.bicleaner07.tmx.gz
