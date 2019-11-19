@@ -1,1 +1,4 @@
 docopt
+selenium
+lxml
+tldextract
