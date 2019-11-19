@@ -1,4 +1,5 @@
-docopt
+tqdm
 selenium
 lxml
 tldextract
+requests
