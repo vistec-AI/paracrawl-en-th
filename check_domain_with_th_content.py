@@ -223,11 +223,11 @@ def run(examples_urls_in_pattern, is_test=False):
             pool = multiprocessing.Pool()
             results = pool.map(_substitue_lang_worker,
                     urls,
-                            chunksize=2)
+                            chunksize=1)
             
             results = list(results)
             
-
+            print('len(results):', len(results))
             for result in results:
                 is_thai, status, match, modified_url = result
                 
