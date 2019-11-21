@@ -28,6 +28,8 @@ from fake_useragent import UserAgent
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from datetime import datetime
 import argparse
+
+import utils
 # 1. Load dataset
 def load_dataset():
     with open('./data/en-de.bicleaner07.json', 'r', encoding="utf-8") as f:
@@ -221,7 +223,7 @@ def run(examples_urls_in_pattern, is_test=False):
             pool = multiprocessing.Pool()
             results = pool.map(_substitue_lang_worker,
                     urls,
-                            chunksize=10)
+                            chunksize=2)
             
             results = list(results)
             
