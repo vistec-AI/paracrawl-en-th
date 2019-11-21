@@ -1,3 +1,21 @@
+import re, os
+import pandas as pd
+from bs4 import BeautifulSoup
+from pprint import pprint
+from collections import Counter, defaultdict
+
+from tqdm.notebook import tqdm
+
+from urllib.parse import urlparse
+from requests import get, head
+from random import sample, choice, seed
+from time import sleep
+from selenium import webdriver
+import json
+from urllib.parse import urlparse
+import multiprocessing
+from functools import partial, reduce
+
 import json
 import re, os
 from tqdm import tqdm
