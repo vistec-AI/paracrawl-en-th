@@ -30,7 +30,7 @@ from datetime import datetime
 import argparse
 # 1. Load dataset
 def load_dataset():
-    with open('../data/en-de.bicleaner07.json', 'r', encoding="utf-8") as f:
+    with open('./data/en-de.bicleaner07.json', 'r', encoding="utf-8") as f:
         dataset = json.load(f)
         return dataset
 
@@ -251,7 +251,7 @@ def write_to_jspn(urls_with_status):
     current = datetime.now().strftime("%d.%m.%Y_%H.%M")
 
     print(current)
-    path = "../data/urls_with_status.{}".format(current)
+    path = "./data/urls_with_status.{}".format(current)
     with open(path, 'w', encoding="utf-8") as f:
     
         json.dump(urls_with_status, f, ensure_ascii=False, indent=4)
