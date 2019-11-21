@@ -11,7 +11,7 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from datetime import datetime
 import argparse
 # 1. Load dataset
-def load_dataset()
+def load_dataset():
     with open('../data/en-de.bicleaner07.json', 'r', encoding="utf-8") as f:
         dataset = json.load(f)
         return dataset
