@@ -222,8 +222,8 @@ def run(examples_urls_in_pattern, is_test=False):
         try:
             pool = multiprocessing.Pool()
             results = pool.map(_substitue_lang_worker,
-                    urls,
-                            chunksize=1)
+                               urls,
+                               chunksize=5)
             
             results = list(results)
             
