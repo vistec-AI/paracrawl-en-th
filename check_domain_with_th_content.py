@@ -9,7 +9,7 @@ from selenium import webdriver
 from fake_useragent import UserAgent
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from datetime import datetime
-
+import argparse
 # 1. Load dataset
 def load_dataset()
     with open('../data/en-de.bicleaner07.json', 'r', encoding="utf-8") as f:
@@ -180,7 +180,7 @@ def substitute_lang_worker_callback(results):
             "pattern": match,
         }
 
-def run(examples_urls_in_pattern):
+def run(examples_urls_in_pattern, is_test=False):
     for pattern, urls in examples_urls_in_pattern.items():
       
         for sub_pattern in SUB_LANG_PATTERNS:
@@ -196,6 +196,9 @@ def run(examples_urls_in_pattern):
         _substitue_lang_worker = partial(substitue_lang_worker,
                                         match, replace)
  
+        if is_test:
+            print('testing: fetch only 10 urls')
+            urls = urls[:10]
         try:
             pool = multiprocessing.Pool()
             results = pool.map(_substitue_lang_worker,
@@ -237,6 +240,11 @@ def write_to_jspn(urls_with_status):
     
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-test', action="store_true")
+
+    args = parser.parse_args()
+
     print('1. load dataset')
 
     dataset = load_dataset()
@@ -248,7 +256,7 @@ if __name__ == "__main__":
 
     print('\n\n\n')
     print('3. run the http, lang detect')
-    run(examples_urls_in_pattern)
+    run(examples_urls_in_pattern, is_test=args.test)
 
     print('\n\n4.writing result to file')
     write_to_jspn(urls_with_status)
