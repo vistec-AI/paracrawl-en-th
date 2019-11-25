@@ -157,7 +157,7 @@ def get_content(url):
     except Exception as e:
         print('e', e)
         return ''
-    
+    return ''
     # return r.content
 
 urls_with_status = defaultdict(defaultdict)
@@ -180,22 +180,22 @@ def substitue_lang_worker(match, replace, url):
     result = (is_thai, status, match, url_modified_correct)
     return result
 
-def substitute_lang_worker_callback(results):
-    print('type(results):', type(results))
-    assert type(results) == list
-    for result in results:
-        is_thai, status, match, modified_url = result
-        print('callback result', result)
+# def substitute_lang_worker_callback(results):
+#     print('type(results):', type(results))
+#     assert type(results) == list
+#     for result in results:
+#         is_thai, status, match, modified_url = result
+#         print('callback result', result)
 
-        pattern_counter[match][status] += 1
-#         print(pattern_counter)
-        full_domain = utils.extract_full_domain(modified_url)
+#         pattern_counter[match][status] += 1
+# #         print(pattern_counter)
+#         full_domain = utils.extract_full_domain(modified_url)
 
-        urls_with_status[status][full_domain] = {
-            "is_thai": is_thai,
-            "example_modified_url": [modified_url],
-            "pattern": match,
-        }
+#         urls_with_status[status][full_domain] = {
+#             "is_thai": is_thai,
+#             "example_modified_url": [modified_url],
+#             "pattern": match,
+#         }
 
 def run(examples_urls_in_pattern, is_test=False, n_workers=8):
     for pattern, urls in examples_urls_in_pattern.items():
@@ -236,6 +236,8 @@ def run(examples_urls_in_pattern, is_test=False, n_workers=8):
                 
         except Exception as e:
             print('exception:', e)
+
+        print('Done.')
 
 def write_to_jspn(urls_with_status):
     
