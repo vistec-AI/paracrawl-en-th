@@ -47,7 +47,7 @@ def get_sample_urls_match_with_patterns(dataset, patterns):
     for domain, urls in tqdm(dataset['de'].items()):
         
         for pattern in patterns:
-            for url in urls[:2]:
+            for url in urls[:1]:
                 if re.search(pattern[0], url):
                     counter[pattern[0]] += 1
 
