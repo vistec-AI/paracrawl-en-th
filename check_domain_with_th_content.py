@@ -149,7 +149,7 @@ def get_content(url):
     #     driver.close()
     ua = UserAgent()
     try:
-        r = requests.get(url,  headers={'User-Agent': ua.random})
+        r = requests.get(url, headers={'User-Agent': ua.random})
         r.encoding = 'utf-8'
         return r.text # return string
     except Exception as e:
