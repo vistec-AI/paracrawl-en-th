@@ -220,7 +220,7 @@ def run(examples_urls_in_pattern, is_test=False, n_workers=8):
             urls = urls[:10]
         try:
             with ThreadPoolExecutor(max_workers=n_workers) as executor:
-                results = list(tqdm(executor.map(_substitue_lang_worker, urls), position=0, leave=True, total=len(urls)))
+                results = list(tqdm(executor.map(_substitue_lang_worker, urls), total=len(urls)))
 
 
             for result in results:
