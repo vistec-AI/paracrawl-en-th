@@ -102,27 +102,29 @@ def get_status(url):
     
     s = requests.Session()
     ua = UserAgent()
-    if 'http://' not in url:
-        url_http = 'http://'  + url
-         
-        r = requests_retry_session(session=s).head(url_http)
-        url_correct = url_http
+    try:
+        if 'http://' not in url:
+            url_http = 'http://'  + url
+                
+            r = requests_retry_session(session=s).head(url_http)
+            url_correct = url_http
+
+            if r == None:
+                url_https = 'https://'  + url
+                r = requests_retry_session(session=s).head(url_https)
+                url_correct = url_https
+        else:
+            r = requests_retry_session(session=s).head(url)
+
 
         if r == None:
-            url_https = 'https://'  + url
-            r = requests_retry_session(session=s).head(url_https)
-            url_correct = url_https
-    else:
-        r = requests_retry_session(session=s).head(url)
+            code= 0
+        else:
+            code = r.status_code
 
-
-    if r == None:
-        code= 0
-    else:
-        code = r.status_code
-
-        # code = 0  # probably bad domain name
-     
+            # code = 0  # probably bad domain name
+    except Exception as e:
+        code = 0
     return code, url_correct
 
 
