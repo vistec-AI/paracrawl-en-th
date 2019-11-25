@@ -216,7 +216,6 @@ def run(examples_urls_in_pattern, is_test=False, n_workers=8):
             print('testing: fetch only 10 urls')
             urls = urls[:10]
         
-        results = []
         counter = 0
         with ThreadPoolExecutor(max_workers=n_workers) as executor:
             future_to_url = { executor.submit(_substitue_lang_worker, url): url  for url in urls }
