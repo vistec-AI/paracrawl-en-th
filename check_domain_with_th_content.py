@@ -101,17 +101,18 @@ def get_status(url):
     url_correct = url
     
     s = requests.Session()
+    ua = UserAgent()
     try:
         if 'http://' not in url:
             url_http = 'http://'  + url
             try: 
-                r = requests_retry_session(session=s).head(url_http)
+                r = requests_retry_session(session=s).head(url_http, headers={'User-Agent': ua.random})
                 url_correct = url_http
             except:
                         
                 try:
                     url_https = 'https://'  + url
-                    r = requests_retry_session(session=s).head(url_https)
+                    r = requests_retry_session(session=s).head(url_https, headers={'User-Agent': ua.random})
                     url_correct = url_https
 
                 except:
