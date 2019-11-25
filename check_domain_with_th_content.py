@@ -225,6 +225,8 @@ def run(examples_urls_in_pattern, is_test=False, n_workers=8):
                 counter+=1
                 if counter % 500 == 0:
                     print('counter: {}'.format(counter))
+                if counter == len(urls):
+                    print('[ Completed counter: {} ]'.format(counter))
                 try:
                     result = future.result()
                     is_thai, status, match, modified_url = result
