@@ -85,7 +85,7 @@ def get_driver(executable_path=CHROMEDRIVER_PATH):
         chromeOptions.add_argument("--headless")
         chromeOptions.add_argument("--no-sandbox")
         chromeOptions.add_argument('--ignore-certificate-errors')
-        chromeOptions.addArguments("disable-gpu")
+        chromeOptions.add_argument("disable-gpu")
 
         driver = webdriver.Chrome(executable_path, options=chromeOptions)
         driver.execute_cdp_cmd('Network.setUserAgentOverride', {"userAgent": UserAgent().random, "platform":"Linux"})
