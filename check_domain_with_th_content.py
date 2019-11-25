@@ -35,13 +35,6 @@ SUB_LANG_PATTERNS = [
     (r'^(german|ger|ge)(\.)', r'th\2'), ## lang id as the sub domain
     (r'(/)(german|ger|ge)(/)', r'\1th\3'),
     (r'(lang=)((german|ger|ge))', r'\1th'),
-    (r'(lang=)(de)', r'\1thai'),
-    (r'(/)(de)(/)', r'\1thai\3'),
-    (r'(/)(de)$', r'\1thai'),
-    (r'^(de)(\.)', r'thai\2'), ## lang id as the sub domain
-    (r'^(german|ger|ge)(\.)', r'\1thai\2'), ## lang id as the sub domain
-    (r'(/)(german|ger|ge)(/)', r'\1thai\3'),
-    (r'(lang=)((german|ger|ge))', r'\1thai'),
 ]
 
 CHROMEDRIVER_PATH = 'chromedriver'
