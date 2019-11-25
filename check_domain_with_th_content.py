@@ -217,25 +217,29 @@ def run(examples_urls_in_pattern, is_test=False, n_workers=8):
             urls = urls[:10]
         
         results = []
-        try:
-            with ThreadPoolExecutor(max_workers=n_workers) as executor:
-                 results = list(tqdm(executor.map(_substitue_lang_worker, urls)), total=len(urls))
+        with ThreadPoolExecutor(max_workers=n_workers) as executor:
+            future_to_url = { executor.submit(_substitue_lang_worker, url): url  for url in urls }
+            
+            for future in concurrent.futures.as_completed(future_to_url):
+                url = future_to_url[future]
 
+                try:
+                    result = future.result()
+                    is_thai, status, match, modified_url = result
+            
+                    pattern_counter[match][status] += 1
+                    full_domain = utils.extract_full_domain(modified_url)
 
-            for result in results:
-                is_thai, status, match, modified_url = result
-                
-                pattern_counter[match][status] += 1
-                full_domain = utils.extract_full_domain(modified_url)
-
-                urls_with_status[status][full_domain] = {
-                    "is_thai": is_thai,
-                    "example_modified_url": [modified_url],
-                    "pattern": match,
-                } 
-                
-        except Exception as e:
-            print('exception:', e)
+                    urls_with_status[status][full_domain] = {
+                        "is_thai": is_thai,
+                        "example_modified_url": [modified_url],
+                        "pattern": match,
+                    }
+                except Exception as exc:
+                    print('%r generated an exception: %s' % (url, exc))
+                    pass
+                    
+     
 
         print('Done.')
 
