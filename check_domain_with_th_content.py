@@ -100,21 +100,20 @@ def get_status(url):
     r = None
     url_correct = url
     
-    s = requests.Session()
     ua = UserAgent()
     try:
         if 'http://' not in url:
             url_http = 'http://'  + url
                 
-            r = requests_retry_session(session=s).head(url_http)
+            r = requests_retry_session().head(url_http)
             url_correct = url_http
 
             if r == None:
                 url_https = 'https://'  + url
-                r = requests_retry_session(session=s).head(url_https)
+                r = requests_retry_session().head(url_https)
                 url_correct = url_https
         else:
-            r = requests_retry_session(session=s).head(url)
+            r = requests_retry_session().head(url)
 
 
         if r == None:
