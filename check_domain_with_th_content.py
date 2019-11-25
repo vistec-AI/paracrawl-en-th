@@ -243,8 +243,9 @@ def run(examples_urls_in_pattern, is_test=False, n_workers=8):
                         "pattern": match,
                     }
                 except Exception as exc:
-                    print('%r generated an exception: %s' % (url, exc))
-                    pass
+                    print('e', exc)
+                    # print('%r generated an exception: %s' % (url, exc))
+                    continue
                     
      
 
