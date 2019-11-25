@@ -21,6 +21,7 @@ from fake_useragent import UserAgent
 
 import utils
 
+
 # 1. Load dataset
 def load_dataset():
     with open('./data/en-de.bicleaner07.json', 'r', encoding="utf-8") as f:
@@ -137,21 +138,28 @@ def detect_thai_language(text):
     if re.search(re.compile(pattern), text):
         return True
     return False
-    
-def get_content(url):
-    driver = get_driver()
-    try:
-      
 
-        driver.get(url)
-        text = driver.page_source
-    except Exception as e:
+def get_content(url):
+    # driver = get_driver()
+    # try:
+    #     driver.get(url)
+    #     text = driver.page_source
+    # except Exception as e:
         
-        print('exception: get_content()')
-        print('url:', url)
-        print(e)
+    #     print('exception: get_content()')
+    #     print('url:', url)
+    #     print(e)
+    #     return ''
+    # finally:
+    #     driver.close()
+
+    try:
+        r = requests_retry_session.get(url)
+        return r.content
+    except Exception as e:
         return ''
-    return text
+    
+    # return r.content
 
 urls_with_status = defaultdict(defaultdict)
 pattern_counter = defaultdict(Counter)
