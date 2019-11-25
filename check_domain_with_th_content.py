@@ -155,7 +155,7 @@ def get_content(url):
 
     try:
         r = requests_retry_session.get(url)
-        return r.content
+        return r.text # return string
     except Exception as e:
         return ''
     
