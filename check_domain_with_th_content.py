@@ -250,8 +250,8 @@ def write_to_jspn(urls_with_status):
     
     current = datetime.now().strftime("%d.%m.%Y_%H.%M")
 
-    print(current)
     path = "./data/urls_with_status.{}.json".format(current)
+    print(path)
     with open(path, 'w', encoding="utf-8") as f:
     
         json.dump(urls_with_status, f, ensure_ascii=False, indent=4)
