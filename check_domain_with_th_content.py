@@ -1,35 +1,26 @@
-import re, os
-import pandas as pd
-from bs4 import BeautifulSoup
-from pprint import pprint
-from collections import Counter, defaultdict
 
-from tqdm.notebook import tqdm
-
-from urllib.parse import urlparse
-from requests import get, head
-from random import sample, choice, seed
-from time import sleep
-from selenium import webdriver
+import argparse
 import json
-from urllib.parse import urlparse
-import multiprocessing
+import re, os
+import threading
+from time import sleep
+from collections import Counter, defaultdict
+from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor
+from random import sample, choice, seed
 from functools import partial, reduce
 
-import json
-import re, os
-from tqdm import tqdm
+import pandas as pd
 import requests
+from tqdm import tqdm
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
-import threading
 from selenium import webdriver
-from fake_useragent import UserAgent
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-from datetime import datetime
-import argparse
+from fake_useragent import UserAgent
 
 import utils
+
 # 1. Load dataset
 def load_dataset():
     with open('./data/en-de.bicleaner07.json', 'r', encoding="utf-8") as f:
@@ -44,7 +35,16 @@ SUB_LANG_PATTERNS = [
     (r'^(german|ger|ge)(\.)', r'th\2'), ## lang id as the sub domain
     (r'(/)(german|ger|ge)(/)', r'\1th\3'),
     (r'(lang=)((german|ger|ge))', r'\1th'),
+    (r'(lang=)(de)', r'\1thai'),
+    (r'(/)(de)(/)', r'\1thai\3'),
+    (r'(/)(de)$', r'\1thai'),
+    (r'^(de)(\.)', r'thai\2'), ## lang id as the sub domain
+    (r'^(german|ger|ge)(\.)', r'\1thai\2'), ## lang id as the sub domain
+    (r'(/)(german|ger|ge)(/)', r'\1thai\3'),
+    (r'(lang=)((german|ger|ge))', r'\1thai'),
 ]
+
+CHROMEDRIVER_PATH = 'chromedriver'
 
 # 2. get URLs
 def get_sample_urls_match_with_patterns(dataset, patterns):
@@ -85,20 +85,19 @@ def requests_retry_session(
 
 
 threadLocal = threading.local()
-def get_driver():
+def get_driver(executable_path=CHROMEDRIVER_PATH):
     driver = getattr(threadLocal, 'driver', None)
     if driver is None:
         chromeOptions = webdriver.ChromeOptions()
         chromeOptions.add_argument("--headless")
         chromeOptions.add_argument("--no-sandbox")
-    
+        chromeOptions.add_argument('--ignore-certificate-errors')
 
-        driver = webdriver.Chrome(options=chromeOptions)
+        driver = webdriver.Chrome(executable_path,options=chromeOptions)
         driver.execute_cdp_cmd('Network.setUserAgentOverride', {"userAgent": UserAgent().random, "platform":"Linux"})
-
         setattr(threadLocal, 'driver', driver)
-        driver.execute_cdp_cmd('Network.setUserAgentOverride', {"userAgent": UserAgent().random, "platform":"Linux"})
-    
+        
+    driver.execute_cdp_cmd('Network.setUserAgentOverride', {"userAgent": UserAgent().random, "platform":"Linux"})
     return driver
 
 
@@ -107,18 +106,15 @@ def get_status(url):
     url_correct = url
     
     s = requests.Session()
-    
     try:
         if 'http://' not in url:
             url_http = 'http://'  + url
             try: 
-#                 session = requests.Session()
                 r = requests_retry_session(session=s).head(url_http)
                 url_correct = url_http
             except:
                         
                 try:
-    #                 session = requests.Session()                
                     url_https = 'https://'  + url
                     r = requests_retry_session(session=s).head(url_https)
                     url_correct = url_https
@@ -149,9 +145,9 @@ def detect_thai_language(text):
     return False
     
 def get_content(url):
+    driver = get_driver()
     try:
       
-        driver = get_driver()
 
         driver.get(url)
         text = driver.page_source
@@ -200,7 +196,7 @@ def substitute_lang_worker_callback(results):
             "pattern": match,
         }
 
-def run(examples_urls_in_pattern, is_test=False):
+def run(examples_urls_in_pattern, is_test=False, n_workers=8):
     for pattern, urls in examples_urls_in_pattern.items():
       
         for sub_pattern in SUB_LANG_PATTERNS:
@@ -209,25 +205,20 @@ def run(examples_urls_in_pattern, is_test=False):
                 break
 
         print('')
-        print('pattern:', pattern)
-        print('number of urls for this pattern:', len(urls))
+        print('Pattern:', pattern, 'replace with:', replace)
+        print('Number of urls for this pattern:', len(urls))
         print('')
 
-        _substitue_lang_worker = partial(substitue_lang_worker,
-                                        match, replace)
+        _substitue_lang_worker = partial(substitue_lang_worker, match, replace)
  
         if is_test:
             print('testing: fetch only 10 urls')
             urls = urls[:10]
         try:
-            pool = multiprocessing.Pool()
-            results = pool.map(_substitue_lang_worker,
-                               urls,
-                               chunksize=5)
-            
-            results = list(results)
-            
-            print('len(results):', len(results))
+            with ThreadPoolExecutor(max_workers=n_workers) as executor:
+                results = list(tqdm(executor.map(_substitue_lang_worker, urls), total=len(urls)))
+
+
             for result in results:
                 is_thai, status, match, modified_url = result
                 
@@ -237,16 +228,11 @@ def run(examples_urls_in_pattern, is_test=False):
                 urls_with_status[status][full_domain] = {
                     "is_thai": is_thai,
                     "example_modified_url": [modified_url],
-                    'pattern': match,
+                    "pattern": match,
                 } 
                 
-                
         except Exception as e:
-            print(e)
-        finally:
-            print('Close processes')
-            pool.close()
-            pool.join()
+            print('exception:', e)
 
 def write_to_jspn(urls_with_status):
     
@@ -259,14 +245,19 @@ def write_to_jspn(urls_with_status):
         json.dump(urls_with_status, f, ensure_ascii=False, indent=4)
     
 
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('-test', action="store_true")
+    parser.add_argument('--n_workers', type=int, default=8)
+    parser.add_argument('--chromedriver_path', type=str, default='chromedriver')
 
     args = parser.parse_args()
 
-    print('1. load dataset')
+    CHROMEDRIVER_PATH = args.chromedriver_path
 
+    print('1. load dataset')
     dataset = load_dataset()
 
     print('2. get url match pattern dataset')
@@ -276,7 +267,7 @@ if __name__ == "__main__":
 
     print('\n\n\n')
     print('3. run the http, lang detect')
-    run(examples_urls_in_pattern, is_test=args.test)
+    run(examples_urls_in_pattern, is_test=args.test, n_workers=args.n_workers)
 
     print('\n\n4.writing result to file')
     write_to_jspn(urls_with_status)
