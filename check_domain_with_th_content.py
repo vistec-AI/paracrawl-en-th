@@ -221,7 +221,7 @@ def run(examples_urls_in_pattern, is_test=False, n_workers=8):
         
         results = []
         try:
-            with ProcessPoolExecutor(max_workers=n_workers) as executor:
+            with ThreadPoolExecutor(max_workers=n_workers) as executor:
                  results = list(executor.map(_substitue_lang_worker, urls))
 
 
