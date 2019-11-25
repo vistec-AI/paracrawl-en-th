@@ -230,8 +230,7 @@ def run(examples_urls_in_pattern, is_test=False, n_workers=8):
                     print('[ Completed counter: {} ]'.format(counter))
                 try:
                     result = future.result()
-                    if is_test:
-                        print('result:', result)
+                    print('result:', result)
                     is_thai, status, match, modified_url = result
             
                     pattern_counter[match][status] += 1
