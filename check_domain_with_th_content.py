@@ -217,12 +217,15 @@ def run(examples_urls_in_pattern, is_test=False, n_workers=8):
             urls = urls[:10]
         
         results = []
+        counter = 0
         with ThreadPoolExecutor(max_workers=n_workers) as executor:
             future_to_url = { executor.submit(_substitue_lang_worker, url): url  for url in urls }
             
             for future in concurrent.futures.as_completed(future_to_url):
                 url = future_to_url[future]
-
+                counter+=1
+                if counter % 500 == 0:
+                    print('counter: {}'.format(counter))
                 try:
                     result = future.result()
                     is_thai, status, match, modified_url = result
