@@ -220,7 +220,7 @@ def run(examples_urls_in_pattern, is_test=False, n_workers=8):
         with ThreadPoolExecutor(max_workers=n_workers) as executor:
             future_to_url = { executor.submit(_substitue_lang_worker, url): url  for url in urls }
             
-            for future in tqdm(concurrent.futures.as_completed(future_to_url)):
+            for future in concurrent.futures.as_completed(future_to_url):
                 url = future_to_url[future]
                 
                 counter+=1
