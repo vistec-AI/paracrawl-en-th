@@ -105,15 +105,15 @@ def get_status(url):
     if 'http://' not in url:
         url_http = 'http://'  + url
          
-        r = requests_retry_session(session=s).head(url_http, headers={'User-Agent': ua.random})
+        r = requests_retry_session(session=s).head(url_http)
         url_correct = url_http
 
         if r == None:
             url_https = 'https://'  + url
-            r = requests_retry_session(session=s).head(url_https, headers={'User-Agent': ua.random})
+            r = requests_retry_session(session=s).head(url_https)
             url_correct = url_https
     else:
-        r = requests_retry_session(session=s).head(url, headers={'User-Agent': ua.random})
+        r = requests_retry_session(session=s).head(url)
 
 
     if r == None:
@@ -149,7 +149,7 @@ def get_content(url):
     #     driver.close()
     ua = UserAgent()
     try:
-        r = requests.get(url, headers={'User-Agent': ua.random})
+        r = requests.get(url, headers={'User-Agent': ua.random} )
         r.encoding = 'utf-8'
         return r.text # return string
     except Exception as e:
