@@ -6,7 +6,7 @@ import threading
 from time import sleep
 from collections import Counter, defaultdict
 from datetime import datetime
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from random import sample, choice, seed
 from functools import partial, reduce
 
@@ -219,7 +219,7 @@ def run(examples_urls_in_pattern, is_test=False, n_workers=8):
             print('testing: fetch only 10 urls')
             urls = urls[:10]
         try:
-            with ThreadPoolExecutor(max_workers=n_workers) as executor:
+            with ProcessPoolExecutor(max_workers=n_workers) as executor:
                 results = list(tqdm(executor.map(_substitue_lang_worker, urls), total=len(urls)))
 
 
