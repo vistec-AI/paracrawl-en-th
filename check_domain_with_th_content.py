@@ -152,7 +152,7 @@ def get_content(url):
     ua = UserAgent()
     try:
         r = requests.get(url, headers={'User-Agent': ua.random} )
-        r.encoding = 'utf-8'
+        r.encoding = r.apparent_encoding
         return r.text # return string
     except Exception as e:
         print('e', e)
@@ -219,7 +219,7 @@ def run(examples_urls_in_pattern, is_test=False, n_workers=8):
         results = []
         try:
             with ThreadPoolExecutor(max_workers=n_workers) as executor:
-                 results = list(executor.map(_substitue_lang_worker, urls))
+                 results = list(tqdm(executor.map(_substitue_lang_worker, urls)), total=len(urls))
 
 
             for result in results:
