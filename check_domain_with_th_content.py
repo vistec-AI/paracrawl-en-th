@@ -58,7 +58,7 @@ def get_sample_urls_match_with_patterns(dataset, patterns):
 # 3. call and check
 
 def requests_retry_session(
-    retries=3,
+    retries=0,
     backoff_factor=0.3,
     status_forcelist=(500, 502, 504),
     session=None,
@@ -221,7 +221,7 @@ def run(examples_urls_in_pattern, is_test=False, n_workers=8):
         
         results = []
         try:
-            with ThreadPoolExecutor(max_workers=n_workers) as executor:
+            with ProcessPoolExecutor(max_workers=n_workers) as executor:
                  results = list(executor.map(_substitue_lang_worker, urls))
 
 
