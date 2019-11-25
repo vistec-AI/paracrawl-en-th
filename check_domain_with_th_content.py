@@ -152,13 +152,13 @@ def get_content(url):
     #     return ''
     # finally:
     #     driver.close()
-    s = requests.Session()
 
     try:
-        r = requests_retry_session(session=s).get(url)
+        r = requests_retry_session().get(url)
         r.encoding = 'utf-8'
         return r.text # return string
     except Exception as e:
+        print('e', e)
         return ''
     
     # return r.content
