@@ -218,9 +218,11 @@ def run(examples_urls_in_pattern, is_test=False, n_workers=8):
         if is_test:
             print('testing: fetch only 10 urls')
             urls = urls[:10]
+        
+        results = []
         try:
-            with ProcessPoolExecutor(max_workers=n_workers) as executor:
-                results = list(tqdm(executor.map(_substitue_lang_worker, urls), total=len(urls)))
+            with ThreadPoolExecutor(max_workers=n_workers) as executor:
+                 results = list(executor.map(_substitue_lang_worker, urls))
 
 
             for result in results:
