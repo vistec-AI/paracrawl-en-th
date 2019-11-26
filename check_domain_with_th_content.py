@@ -219,33 +219,33 @@ def run(examples_urls_in_pattern, is_test=False, n_workers=8):
         counter = 0
         with ThreadPoolExecutor(max_workers=n_workers) as executor:
             future_to_url = { executor.submit(_substitue_lang_worker, url): url  for url in urls }
-            
-            for future in concurrent.futures.as_completed(future_to_url):
-                url = future_to_url[future]
-                
-                counter+=1
-                if counter % 500 == 0:
-                    print('counter: {}'.format(counter))
-                if counter == len(urls):
-                    print('[ Completed counter: {} ]'.format(counter))
-                try:
-                    result = future.result()
-                    print('result:', result)
-                    is_thai, status, match, modified_url = result
-            
-                    pattern_counter[match][status] += 1
-                    full_domain = utils.extract_full_domain(modified_url)
-
-                    urls_with_status[status][full_domain] = {
-                        "is_thai": is_thai,
-                        "example_modified_url": [modified_url],
-                        "pattern": match,
-                    }
-                except Exception as exc:
-                    print('e', exc)
-                    # print('%r generated an exception: %s' % (url, exc))
-                    continue
+            with tqdm(total=len(urls)) as pbar:
+                for future in concurrent.futures.as_completed(future_to_url):
+                    url = future_to_url[future]
                     
+                    pbar.update(1)
+                    # if counter % 500 == 0:
+                    print('counter: {}/{}'.format(counter, len(urls)))
+                    if counter == len(urls):
+                        print('[ Completed counter: {} ]'.format(counter))
+                    try:
+                        result = future.result()
+                        print('result:', result)
+                        is_thai, status, match, modified_url = result
+                
+                        pattern_counter[match][status] += 1
+                        full_domain = utils.extract_full_domain(modified_url)
+
+                        urls_with_status[status][full_domain] = {
+                            "is_thai": is_thai,
+                            "example_modified_url": [modified_url],
+                            "pattern": match,
+                        }
+                    except Exception as exc:
+                        print('e', exc)
+                        # print('%r generated an exception: %s' % (url, exc))
+                        continue
+                        
      
 
         print('Done.')
