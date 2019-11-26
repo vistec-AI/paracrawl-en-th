@@ -10,6 +10,7 @@ import concurrent
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 from random import sample, choice, seed
 from functools import partial, reduce
+from traceback import print_exc
 
 import pandas as pd
 import requests
@@ -103,27 +104,25 @@ def get_status(url):
     
     ua = UserAgent()
     try:
-        if 'http://' not in url:
+        if 'http' not in url:
             url_http = 'http://'  + url
                 
-            r = requests_retry_session().head(url_http)
+            r = requests.head(url_http, headers={'User-Agent': ua.random }, timeout=3)
             url_correct = url_http
 
             if r == None:
                 url_https = 'https://'  + url
-                r = requests_retry_session().head(url_https)
+                r = requests.head(url_https, headers={'User-Agent': ua.random }, timeout=3)
                 url_correct = url_https
         else:
-            r = requests_retry_session().head(url)
-
-
+            r = requests.head(url, headers={'User-Agent': ua.random }, timeout=3)
         if r == None:
             code= 0
         else:
             code = r.status_code
-
             # code = 0  # probably bad domain name
     except Exception as e:
+        # print('Exception in get_status(): ', e)
         code = 0
     return code, url_correct
 
@@ -149,13 +148,12 @@ def get_content(url):
     #     return ''
     # finally:
     #     driver.close()
-    ua = UserAgent()
     try:
-        r = requests.get(url, headers={'User-Agent': ua.random} )
+        r = requests.get(url, headers={'User-Agent': UserAgent().random}, timeout=5)
         r.encoding = r.apparent_encoding
         return r.text # return string
     except Exception as e:
-        print('e', e)
+        print('Exception in get_content(): ', e)
         return ''
     return ''
     # return r.content
@@ -173,7 +171,7 @@ def substitue_lang_worker(match, replace, url):
     if int(status) == 200:
       
         is_thai = detect_thai_language(get_content(url_modified_correct))
-        if is_thai:
+        if is_thai and VERBOSE:
             print('{}, modifield_url: {} , is_thai: {}'.format(status, url_modified_correct, is_thai))
 
             
@@ -224,13 +222,14 @@ def run(examples_urls_in_pattern, is_test=False, n_workers=8):
                     url = future_to_url[future]
                     
                     pbar.update(1)
+                    counter+=1
                     # if counter % 500 == 0:
-                    print('counter: {}/{}'.format(counter, len(urls)))
+                    # print('counter: {}/{}'.format(counter, len(urls)))
                     if counter == len(urls):
-                        print('[ Completed counter: {} ]'.format(counter))
+                        print('[ Completed counter: {} ]'.format(counter, len(urls)))
                     try:
                         result = future.result()
-                        print('result:', result)
+                        # print('result:', result)
                         is_thai, status, match, modified_url = result
                 
                         pattern_counter[match][status] += 1
@@ -242,7 +241,8 @@ def run(examples_urls_in_pattern, is_test=False, n_workers=8):
                             "pattern": match,
                         }
                     except Exception as exc:
-                        print('e', exc)
+                        print('Exception in thread pool exeucutor: ', exc)
+                        print_exc()
                         # print('%r generated an exception: %s' % (url, exc))
                         continue
                         
@@ -268,9 +268,12 @@ if __name__ == "__main__":
     parser.add_argument('-test', action="store_true")
     parser.add_argument('--n_workers', type=int, default=8)
     parser.add_argument('--chromedriver_path', type=str, default='chromedriver')
+    parser.add_argument('-verbose', action='store_true')
+
 
     args = parser.parse_args()
 
+    VERBOSE = args.verbose
     CHROMEDRIVER_PATH = args.chromedriver_path
 
     print('1. load dataset')
