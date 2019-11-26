@@ -9,3 +9,4 @@ scikit-learn
 scipy
 pandas
 langdetect
+scrapy

@@ -20,24 +20,28 @@ from requests.packages.urllib3.util.retry import Retry
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from fake_useragent import UserAgent
-
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 import utils
 
 
 # 1. Load dataset
 def load_dataset():
-    with open('./data/en-de.bicleaner07.json', 'r', encoding="utf-8") as f:
+    with open('./data/en-de.bicleaner07.v2.json', 'r', encoding="utf-8") as f:
         dataset = json.load(f)
         return dataset
 
 SUB_LANG_PATTERNS = [
-    (r'(lang=)(de)', r'\1th'),
-    (r'(/)(de)(/)', r'\1th\3'),
-    (r'(/)(de)$', r'\1th'),
-    (r'^(de)(\.)', r'th\2'), ## lang id as the sub domain
-    (r'^(german|ger|ge)(\.)', r'th\2'), ## lang id as the sub domain
-    (r'(/)(german|ger|ge)(/)', r'\1th\3'),
-    (r'(lang=)((german|ger|ge))', r'\1th'),
+    # (r'(lang=)(de)', r'\1th'),
+    #(r'(/)(de)(/)', r'\1th\3'),
+    # (r'(/)(de)$', r'\1th'),
+    # (r'^(de)(\.)', r'th\2',), ## lang id as the sub domain
+    # (r'^(german|ger|ge)(\.)', r'th\2'), ## lang id as the sub domain
+    # (r'(/)(german|ger|ge)(/)', r'\1th\3'),
+    #(r'(lang=)((german|ger|ge))', r'\1th'),
+    (r'\bde\b', r'th'),
+    (r'\bge\b', r'th')
+
 ]
 
 CHROMEDRIVER_PATH = 'chromedriver'
@@ -46,14 +50,18 @@ CHROMEDRIVER_PATH = 'chromedriver'
 def get_sample_urls_match_with_patterns(dataset, patterns):
     counter = Counter()
     examples_urls_in_pattern = defaultdict(list)
-    for domain, urls in tqdm(dataset['de'].items()):
+    for domain_index, (de_domain, data) in tqdm(enumerate((dataset.items()))):
         
         for pattern in patterns:
-            for url in urls[:1]:
-                if re.search(pattern[0], url):
+            for item_index, item in enumerate(data['items'][:2]):
+                # url = url.replace('https://', '').replace('http://', '') # remove http scheme
+                de_url = item['de_url']
+                en_url = item['en_url']
+
+                if re.search(pattern[0], de_url):
                     counter[pattern[0]] += 1
 
-                    examples_urls_in_pattern[pattern[0]].append(url)
+                    examples_urls_in_pattern[pattern[0]].append((de_url, en_url))
 
     return examples_urls_in_pattern, counter
     
@@ -107,15 +115,15 @@ def get_status(url):
         if 'http' not in url:
             url_http = 'http://'  + url
                 
-            r = requests.head(url_http, headers={'User-Agent': ua.random }, timeout=3)
+            r = requests.head(url_http, headers={'User-Agent': ua.random }, timeout=3, verify=False)
             url_correct = url_http
 
             if r == None:
                 url_https = 'https://'  + url
-                r = requests.head(url_https, headers={'User-Agent': ua.random }, timeout=3)
+                r = requests.head(url_https, headers={'User-Agent': ua.random }, timeout=3, verify=False)
                 url_correct = url_https
         else:
-            r = requests.head(url, headers={'User-Agent': ua.random }, timeout=3)
+            r = requests.head(url, headers={'User-Agent': ua.random }, timeout=3, verify=False)
         if r == None:
             code= 0
         else:
@@ -149,11 +157,13 @@ def get_content(url):
     # finally:
     #     driver.close()
     try:
-        r = requests.get(url, headers={'User-Agent': UserAgent().random}, timeout=5)
+        r = requests.get(url, headers={'User-Agent': UserAgent().random}, timeout=15, verify=False)
         r.encoding = r.apparent_encoding
         return r.text # return string
     except Exception as e:
+
         print('Exception in get_content(): ', e)
+        print('URL:', url)
         return ''
     return ''
     # return r.content
@@ -163,8 +173,9 @@ pattern_counter = defaultdict(Counter)
 
 def substitue_lang_worker(match, replace, url):
     
-    
-    modified_url = re.sub(match, replace, url)
+    origin_url_de, origin_url_en = url
+
+    modified_url = re.sub(match, replace, origin_url_de)
     status, url_modified_correct = get_status(modified_url)
 
     is_thai = None
@@ -175,7 +186,7 @@ def substitue_lang_worker(match, replace, url):
             print('{}, modifield_url: {} , is_thai: {}'.format(status, url_modified_correct, is_thai))
 
             
-    result = (is_thai, status, match, url_modified_correct)
+    result = (is_thai, status, match, origin_url_de, origin_url_en, url_modified_correct)
     return result
 
 # def substitute_lang_worker_callback(results):
@@ -216,10 +227,9 @@ def run(examples_urls_in_pattern, is_test=False, n_workers=8):
         
         counter = 0
         with ThreadPoolExecutor(max_workers=n_workers) as executor:
-            future_to_url = { executor.submit(_substitue_lang_worker, url): url  for url in urls }
+            future_to_url = { executor.submit(_substitue_lang_worker, url[0]): url[0]  for url in urls }
             with tqdm(total=len(urls)) as pbar:
                 for future in concurrent.futures.as_completed(future_to_url):
-                    url = future_to_url[future]
                     
                     pbar.update(1)
                     counter+=1
@@ -230,14 +240,17 @@ def run(examples_urls_in_pattern, is_test=False, n_workers=8):
                     try:
                         result = future.result()
                         # print('result:', result)
-                        is_thai, status, match, modified_url = result
+                        is_thai, status, match, origin_url_de, origin_url_en, modified_url = result
                 
                         pattern_counter[match][status] += 1
                         full_domain = utils.extract_full_domain(modified_url)
 
                         urls_with_status[status][full_domain] = {
                             "is_thai": is_thai,
-                            "example_modified_url": [modified_url],
+                            "example_url_de": origin_url_de,
+                            "example_url_en": origin_url_en,
+
+                            "example_modified_url": modified_url,
                             "pattern": match,
                         }
                     except Exception as exc:

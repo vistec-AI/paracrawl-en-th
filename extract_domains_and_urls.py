@@ -23,10 +23,7 @@ from utils import (
 
 
 def extract(file_path):
-    dataset = {
-        "en": defaultdict(set),
-        "de": defaultdict(set)
-    }
+    dataset = defaultdict(defaultdict) 
     print("Start extracting.")
 
     counter = Counter()
@@ -44,19 +41,33 @@ def extract(file_path):
                 counter['row_counter'] += 1
 
                 en_url = en.findtext('prop[@type="source-document"]')
+                en_segment = en.findtext('seg')
+
                 de_url = de.findtext('prop[@type="source-document"]')
+                de_segment = de.findtext('seg')
 
                 if en_url == "unknown" or de_url == "unknown":
                     counter['unkown_url_counter'] += 1
                     continue
 
                 en_domain = extract_full_domain(en_url)
-                dataset['en'][en_domain].add(en_url)
-
                 de_domain = extract_full_domain(de_url)
-                dataset['de'][de_domain].add(de_url)
+    
+                dataset[de_domain]['en_domain'] = en_domain
+                dataset[de_domain]['de_domain'] = de_domain
 
-                if len(dataset['de']) > counter['domain_counter']:
+                if dataset[de_domain].get('items') == None:
+                    dataset[de_domain]['items'] = list()
+                
+                dataset[de_domain]['items'].append({
+                    'de_url': de_url,
+                    'en_url': en_url,
+                    'de_segment': de_segment,
+                    'en_segment': en_segment,
+
+                })
+
+                if len(dataset) > counter['domain_counter']:
                     counter['domain_counter'] += 1           
                     pbar_domains.update(1)
 
@@ -89,6 +100,6 @@ if __name__ == '__main__':
     dataset = extract(input_file_path)
 
     print('Save file')
-    save(os.path.join(args.output_dir, '{}.json'.format(input_file_name)),
+    save(os.path.join(args.output_dir, '{}.v2.json'.format(input_file_name)),
          dataset)
     print('Done.')
