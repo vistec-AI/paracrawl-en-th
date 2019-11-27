@@ -24,7 +24,7 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 import utils
 
-ua = UserAgent()
+ua = UserAgent(cache=False)
 
 
 # 1. Load dataset
