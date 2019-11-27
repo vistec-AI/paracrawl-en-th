@@ -116,15 +116,15 @@ def get_status(url):
         if 'http' not in url:
             url_http = 'http://'  + url
                 
-            r = requests.head(url_http, headers={'User-Agent': ua.random }, timeout=3, verify=False)
+            r = requests.head(url_http, headers={'User-Agent': ua.random }, timeout=10, verify=False)
             url_correct = url_http
 
             if r == None:
                 url_https = 'https://'  + url
-                r = requests.head(url_https, headers={'User-Agent': ua.random }, timeout=3, verify=False)
+                r = requests.head(url_https, headers={'User-Agent': ua.random }, timeout=10, verify=False)
                 url_correct = url_https
         else:
-            r = requests.head(url, headers={'User-Agent': ua.random }, timeout=3, verify=False)
+            r = requests.head(url, headers={'User-Agent': ua.random }, timeout=10, verify=False)
         if r == None:
             code= 0
         else:
@@ -158,7 +158,7 @@ def get_content(url):
     # finally:
     #     driver.close()
     try:
-        r = requests.get(url, headers={'User-Agent': ua.random}, timeout=15, verify=False)
+        r = requests.get(url, headers={'User-Agent': ua.random}, timeout=25, verify=False)
         r.encoding = r.apparent_encoding
         return r.text # return string
     except Exception as e:
