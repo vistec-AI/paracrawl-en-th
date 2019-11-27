@@ -25,6 +25,8 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 import utils
 
 
+ua = UserAgent()
+
 # 1. Load dataset
 def load_dataset():
     with open('./data/en-de.bicleaner07.v2.json', 'r', encoding="utf-8") as f:
@@ -110,7 +112,6 @@ def get_status(url):
     r = None
     url_correct = url
     
-    ua = UserAgent()
     try:
         if 'http' not in url:
             url_http = 'http://'  + url
@@ -157,7 +158,7 @@ def get_content(url):
     # finally:
     #     driver.close()
     try:
-        r = requests.get(url, headers={'User-Agent': UserAgent().random}, timeout=15, verify=False)
+        r = requests.get(url, headers={'User-Agent': ua.random}, timeout=15, verify=False)
         r.encoding = r.apparent_encoding
         return r.text # return string
     except Exception as e:
@@ -245,7 +246,7 @@ def run(examples_urls_in_pattern, is_test=False, n_workers=8):
                         is_thai, status, match, origin_url_de, origin_url_en, modified_url = result
                 
                         status = str(status)
-                        
+
                         pattern_counter[match][status] += 1
                         full_domain = utils.extract_full_domain(modified_url)
 
