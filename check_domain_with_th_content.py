@@ -162,9 +162,9 @@ def get_content(url):
         r.encoding = r.apparent_encoding
         return r.text # return string
     except Exception as e:
-
-        # print('Exception in get_content(): ', e)
-        # print('URL:', url)
+        if VERBOSE:
+            print('\nException in get_content(): ', e)
+            print('URL:', url, '\n')
         return ''
     return ''
     # return r.content
