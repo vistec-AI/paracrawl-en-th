@@ -250,9 +250,9 @@ def run(examples_urls_in_pattern, is_test=False, n_workers=8):
                         urls_with_status[status][full_domain].append(
                             {
                                 "is_thai": is_thai,
-                                "example_url_de": origin_url_de,
-                                "example_url_en": origin_url_en,
-                                "example_modified_url": modified_url,
+                                "url_de": origin_url_de,
+                                "url_en": origin_url_en,
+                                "modified_url": modified_url,
                                 "pattern": match,
                             }   
                         )
