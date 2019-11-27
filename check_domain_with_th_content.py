@@ -50,13 +50,13 @@ CHROMEDRIVER_PATH = 'chromedriver'
 def get_sample_urls_match_with_patterns(dataset, patterns):
     counter = Counter()
     examples_urls_in_pattern = defaultdict(list)
-    for domain_index, (de_domain, data) in tqdm(enumerate((dataset.items()))):
+    for domain_index, (de_domain, domain_data) in tqdm(enumerate((dataset.items()))):
         
         for pattern in patterns:
-            for item_index, item in enumerate(data['items'][:2]):
+            for item_index, (de_url, item_data) in enumerate(domain_data['items'].items()):
                 # url = url.replace('https://', '').replace('http://', '') # remove http scheme
-                de_url = item['de_url']
-                en_url = item['en_url']
+                de_url = de_url
+                en_url = item_data['corresponding_en_url']
 
                 if re.search(pattern[0], de_url):
                     counter[pattern[0]] += 1
@@ -227,14 +227,16 @@ def run(examples_urls_in_pattern, is_test=False, n_workers=8):
         
         counter = 0
         with ThreadPoolExecutor(max_workers=n_workers) as executor:
+
+            # url[0] = <de_url>, url[1] = <en_url>
             future_to_url = { executor.submit(_substitue_lang_worker, url[0]): url[0]  for url in urls }
+
             with tqdm(total=len(urls)) as pbar:
                 for future in concurrent.futures.as_completed(future_to_url):
                     
                     pbar.update(1)
                     counter+=1
-                    # if counter % 500 == 0:
-                    # print('counter: {}/{}'.format(counter, len(urls)))
+
                     if counter == len(urls):
                         print('[ Completed counter: {} ]'.format(counter, len(urls)))
                     try:
@@ -245,14 +247,15 @@ def run(examples_urls_in_pattern, is_test=False, n_workers=8):
                         pattern_counter[match][status] += 1
                         full_domain = utils.extract_full_domain(modified_url)
 
-                        urls_with_status[status][full_domain] = {
-                            "is_thai": is_thai,
-                            "example_url_de": origin_url_de,
-                            "example_url_en": origin_url_en,
-
-                            "example_modified_url": modified_url,
-                            "pattern": match,
-                        }
+                        urls_with_status[status][full_domain].append(
+                            {
+                                "is_thai": is_thai,
+                                "example_url_de": origin_url_de,
+                                "example_url_en": origin_url_en,
+                                "example_modified_url": modified_url,
+                                "pattern": match,
+                            }   
+                        )
                     except Exception as exc:
                         print('Exception in thread pool exeucutor: ', exc)
                         print_exc()
