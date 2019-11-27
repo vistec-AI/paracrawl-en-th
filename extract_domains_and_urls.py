@@ -7,8 +7,8 @@ from collections import Counter, defaultdict
 from pprint import pprint
 from time import sleep
 from requests import get, head
-from xmlr import xmlparse, xmliter, XMLParsingMethods
-import json
+# import json
+import rapidjson as json
 
 from lxml.etree import iterparse, tostring, XPath
 # import slack
@@ -22,7 +22,7 @@ from utils import (
 )
 
 
-def extract(file_path):
+def extract(file_path, is_test=False):
     dataset = defaultdict(defaultdict) 
     print("Start extracting.")
 
@@ -30,11 +30,15 @@ def extract(file_path):
 
     # get_tuv = XPath('child::tuv')
     get_url = XPath('prop[@type="source-document"][1]/text()')
-
+    
+    i = 0
     with tqdm(total=36936714) as pbar_items:
         with tqdm(total=67977) as pbar_domains:
 
             for _, d in iterparse(file_path, tag='tu'):
+                if is_test and i == 1000000: # 1 M rows
+                    return dataset
+                i += 1
                 en, de  = d.findall('tuv')
 
 
@@ -57,15 +61,23 @@ def extract(file_path):
                 dataset[de_domain]['de_domain'] = de_domain
 
                 if dataset[de_domain].get('items') == None:
-                    dataset[de_domain]['items'] = list()
+                    # print('create - dataset[de_domain][\'items\'] = defaultdict()')
+                    dataset[de_domain]['items'] = defaultdict()
                 
-                dataset[de_domain]['items'].append({
-                    'de_url': de_url,
-                    'en_url': en_url,
-                    'de_segment': de_segment,
-                    'en_segment': en_segment,
 
-                })
+                dataset[de_domain]['items'][de_url] = { 'corresponding_en_url': en_url }
+                
+                if dataset[de_domain]['items'][de_url].get('number_of_segment') == None:
+                    dataset[de_domain]['items'][de_url]['number_of_segment'] = 0
+
+                dataset[de_domain]['items'][de_url]['number_of_segment'] += 1
+
+                    # 'de_url': de_url,
+                    # 'en_url': en_url,
+                    # 'de_segment': de_segment,
+                    # 'en_segment': en_segment,
+
+                # })
 
                 if len(dataset) > counter['domain_counter']:
                     counter['domain_counter'] += 1           
@@ -81,7 +93,9 @@ def extract(file_path):
 def save(output_path, dataset):
     print("Save result to:", output_path)
     with open(output_path, 'w', encoding="utf-8") as f:    
-        json.dump(dataset, f, ensure_ascii=False, cls=SetEncoder, indent=4)
+        json.dump(dataset, f, ensure_ascii=False,
+                  chunk_size=100000,
+                  indent=4)
 
 
 if __name__ == '__main__':
@@ -90,16 +104,22 @@ if __name__ == '__main__':
 
     parser.add_argument('input_path', type=str)
     parser.add_argument('output_dir', type=str)
+    parser.add_argument('-test', action='store_true')
 
     
     args = parser.parse_args()
 
+    is_test = args.test
     input_file_path = args.input_path
     input_file_name = Path(input_file_path).stem
     
-    dataset = extract(input_file_path)
+    dataset = extract(input_file_path, is_test=is_test)
 
     print('Save file')
-    save(os.path.join(args.output_dir, '{}.v2.json'.format(input_file_name)),
-         dataset)
+    if is_test:
+        save(os.path.join(args.output_dir, '{}.v2.test.json'.format(input_file_name)),
+             dataset)
+    else:
+        save(os.path.join(args.output_dir, '{}.v2.json'.format(input_file_name)),
+             dataset)
     print('Done.')
