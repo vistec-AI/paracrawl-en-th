@@ -25,9 +25,8 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 import utils
 
-ua = UserAgent(cache=False)
-SESSION = None
-
+ua = UserAgent(cache=False, use_cache_server=False)
+USER_AGENT = "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:15.0) Gecko/20100101 Firefox/15.0.1"
 # 1. Load dataset
 def load_dataset():
     with open('./data/en-de.bicleaner07.v2.json', 'r', encoding="utf-8") as f:
@@ -102,7 +101,7 @@ def get_driver(executable_path=CHROMEDRIVER_PATH):
         chromeOptions.add_argument("disable-gpu")
 
         driver = webdriver.Chrome(executable_path, options=chromeOptions)
-        driver.execute_cdp_cmd('Network.setUserAgentOverride', {"userAgent": UserAgent().random, "platform":"Linux"})
+        driver.execute_cdp_cmd('Network.setUserAgentOverride', {"userAgent": "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:15.0) Gecko/20100101 Firefox/15.0.1", "platform":"Linux"})
         setattr(threadLocal, 'driver', driver)
         
     # driver.execute_cdp_cmd('Network.setUserAgentOverride', {"userAgent": UserAgent().random, "platform":"Linux"})
@@ -117,15 +116,15 @@ def get_status(url):
         if 'http' not in url:
             url_http = 'http://'  + url
                 
-            r = SESSION.head(url_http, headers={'User-Agent': ua.random }, timeout=10, verify=False)
+            r = requests.head(url_http, headers={'User-Agent': USER_AGENT }, timeout=10, verify=False)
             url_correct = url_http
 
             if r == None:
                 url_https = 'https://'  + url
-                r = SESSION.head(url_https, headers={'User-Agent': ua.random }, timeout=10, verify=False)
+                r = requests.head(url_https, headers={'User-Agent': USER_AGENT }, timeout=10, verify=False)
                 url_correct = url_https
         else:
-            r = SESSION.head(url, headers={'User-Agent': ua.random }, timeout=10, verify=False)
+            r = requests.head(url, headers={'User-Agent': USER_AGENT }, timeout=10, verify=False)
         if r == None:
             code= 0
         else:
@@ -159,7 +158,7 @@ def get_content(url):
     # finally:
     #     driver.close()
     try:
-        r = requests_retry_session(session=SESSION).get(url, headers={'User-Agent': ua.random })
+        r = requests_retry_session().get(url, headers={'User-Agent': USER_AGENT })
         r.encoding = r.apparent_encoding
         return r.text # return string
     except Exception as e:
