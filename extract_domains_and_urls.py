@@ -30,7 +30,8 @@ def extract(file_path, is_test=False):
 
     # get_tuv = XPath('child::tuv')
     get_url = XPath('prop[@type="source-document"][1]/text()')
-    
+    if is_test:
+        print('\n[Testing], proceed only the first 1,000,000 rows\n')
     i = 0
     with tqdm(total=36936714) as pbar_items:
         with tqdm(total=67977) as pbar_domains:
@@ -64,11 +65,12 @@ def extract(file_path, is_test=False):
                     # print('create - dataset[de_domain][\'items\'] = defaultdict()')
                     dataset[de_domain]['items'] = defaultdict()
                 
+                if dataset[de_domain]['items'].get(de_url) == None:
 
-                dataset[de_domain]['items'][de_url] = { 'corresponding_en_url': en_url }
-                
-                if dataset[de_domain]['items'][de_url].get('number_of_segment') == None:
-                    dataset[de_domain]['items'][de_url]['number_of_segment'] = 0
+                    dataset[de_domain]['items'][de_url] = { 
+                        'corresponding_en_url': en_url, 
+                        'number_of_segment': 0
+                        }
 
                 dataset[de_domain]['items'][de_url]['number_of_segment'] += 1
 
