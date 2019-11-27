@@ -8,6 +8,8 @@ from collections import Counter, defaultdict
 from datetime import datetime
 import concurrent
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+from requests_futures.sessions import FuturesSession
+
 from random import sample, choice, seed
 from functools import partial, reduce
 from traceback import print_exc
@@ -25,7 +27,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 import utils
 
 ua = UserAgent(cache=False)
-
+SESSION = None
 
 # 1. Load dataset
 def load_dataset():
@@ -116,15 +118,15 @@ def get_status(url):
         if 'http' not in url:
             url_http = 'http://'  + url
                 
-            r = requests.head(url_http, headers={'User-Agent': ua.random }, timeout=10, verify=False)
+            r = SESSION.head(url_http, headers={'User-Agent': ua.random }, timeout=10, verify=False)
             url_correct = url_http
 
             if r == None:
                 url_https = 'https://'  + url
-                r = requests.head(url_https, headers={'User-Agent': ua.random }, timeout=10, verify=False)
+                r = SESSION.head(url_https, headers={'User-Agent': ua.random }, timeout=10, verify=False)
                 url_correct = url_https
         else:
-            r = requests.head(url, headers={'User-Agent': ua.random }, timeout=10, verify=False)
+            r = SESSION.head(url, headers={'User-Agent': ua.random }, timeout=10, verify=False)
         if r == None:
             code= 0
         else:
@@ -158,7 +160,7 @@ def get_content(url):
     # finally:
     #     driver.close()
     try:
-        r = requests_retry_session().get(url, headers={'User-Agent': ua.random })
+        r = requests_retry_session(session=SESSION).get(url, headers={'User-Agent': ua.random })
         r.encoding = r.apparent_encoding
         return r.text # return string
     except Exception as e:
@@ -174,6 +176,7 @@ pattern_counter = defaultdict(Counter)
 
 def substitue_lang_worker(match, replace, url):
     
+
     origin_url_de, origin_url_en = url
 
     modified_url = re.sub(match, replace, origin_url_de)
@@ -303,6 +306,8 @@ if __name__ == "__main__":
 
     print('2. get url match pattern dataset')
     examples_urls_in_pattern, counter = get_sample_urls_match_with_patterns(dataset, SUB_LANG_PATTERNS)
+
+    SESSION = FuturesSession(max_workers=args.n_workers)
 
     print(counter)
 

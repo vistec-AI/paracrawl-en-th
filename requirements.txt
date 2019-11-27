@@ -10,3 +10,4 @@ scipy
 pandas
 langdetect
 scrapy
+requests-futures
