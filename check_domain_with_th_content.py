@@ -8,7 +8,7 @@ from collections import Counter, defaultdict
 from datetime import datetime
 import concurrent
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
-from requests_futures.sessions import FuturesSession
+from requests_futures.requestss import Futuresrequests
 
 from random import sample, choice, seed
 from functools import partial, reduce
@@ -27,7 +27,6 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 import utils
 
 ua = UserAgent(cache=False)
-SESSION = None
 
 # 1. Load dataset
 def load_dataset():
@@ -71,13 +70,13 @@ def get_sample_urls_match_with_patterns(dataset, patterns):
     
 # 3. call and check
 
-def requests_retry_session(
+def requests_retry_requests(
     retries=3,
     backoff_factor=0.3,
     status_forcelist=(500, 502, 504),
-    session=None,
+    requests=None,
 ):
-    session = session or requests.Session()
+    requests = requests or requests.requests()
     retry = Retry(
         total=retries,
         read=retries,
@@ -87,9 +86,9 @@ def requests_retry_session(
     )
     adapter = HTTPAdapter(max_retries=retry)
     
-    session.mount('http://', adapter)
-    session.mount('https://', adapter)
-    return session
+    requests.mount('http://', adapter)
+    requests.mount('https://', adapter)
+    return requests
 
 
 threadLocal = threading.local()
@@ -118,15 +117,15 @@ def get_status(url):
         if 'http' not in url:
             url_http = 'http://'  + url
                 
-            r = SESSION.head(url_http, headers={'User-Agent': ua.random }, timeout=10, verify=False)
+            r = requests.head(url_http, headers={'User-Agent': ua.random }, timeout=10, verify=False)
             url_correct = url_http
 
             if r == None:
                 url_https = 'https://'  + url
-                r = SESSION.head(url_https, headers={'User-Agent': ua.random }, timeout=10, verify=False)
+                r = requests.head(url_https, headers={'User-Agent': ua.random }, timeout=10, verify=False)
                 url_correct = url_https
         else:
-            r = SESSION.head(url, headers={'User-Agent': ua.random }, timeout=10, verify=False)
+            r = requests.head(url, headers={'User-Agent': ua.random }, timeout=10, verify=False)
         if r == None:
             code= 0
         else:
@@ -160,7 +159,7 @@ def get_content(url):
     # finally:
     #     driver.close()
     try:
-        r = requests_retry_session(session=SESSION).get(url, headers={'User-Agent': ua.random })
+        r = requests_retry_requests().get(url, headers={'User-Agent': ua.random })
         r.encoding = r.apparent_encoding
         return r.text # return string
     except Exception as e:
@@ -307,7 +306,6 @@ if __name__ == "__main__":
     print('2. get url match pattern dataset')
     examples_urls_in_pattern, counter = get_sample_urls_match_with_patterns(dataset, SUB_LANG_PATTERNS)
 
-    SESSION = requests.Session()
 
     print(counter)
 
