@@ -24,8 +24,8 @@ import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 import utils
 
-
 ua = UserAgent()
+
 
 # 1. Load dataset
 def load_dataset():
@@ -70,7 +70,7 @@ def get_sample_urls_match_with_patterns(dataset, patterns):
 # 3. call and check
 
 def requests_retry_session(
-    retries=0,
+    retries=3,
     backoff_factor=0.3,
     status_forcelist=(500, 502, 504),
     session=None,
@@ -158,13 +158,13 @@ def get_content(url):
     # finally:
     #     driver.close()
     try:
-        r = requests.get(url, headers={'User-Agent': ua.random}, timeout=60, verify=False)
+        r = requests_retry_session().get(url, headers={'User-Agent': ua.random })
         r.encoding = r.apparent_encoding
         return r.text # return string
     except Exception as e:
         if VERBOSE:
             print('\nException in get_content(): ', e)
-            print('URL:', url, '\n')
+            print('\ttarget url:', url)
         return ''
     return ''
     # return r.content
