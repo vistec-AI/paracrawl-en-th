@@ -307,7 +307,7 @@ if __name__ == "__main__":
     print('2. get url match pattern dataset')
     examples_urls_in_pattern, counter = get_sample_urls_match_with_patterns(dataset, SUB_LANG_PATTERNS)
 
-    SESSION = FuturesSession(max_workers=args.n_workers)
+    SESSION = requests.Session()
 
     print(counter)
 
