@@ -163,8 +163,8 @@ def get_content(url):
         return r.text # return string
     except Exception as e:
 
-        print('Exception in get_content(): ', e)
-        print('URL:', url)
+        # print('Exception in get_content(): ', e)
+        # print('URL:', url)
         return ''
     return ''
     # return r.content
