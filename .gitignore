@@ -1,4 +1,3 @@
-data/
-data/*.tmx
+data
 *.pyc
 .ipynb_checkpoints
