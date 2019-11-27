@@ -158,7 +158,7 @@ def get_content(url):
     # finally:
     #     driver.close()
     try:
-        r = requests.get(url, headers={'User-Agent': ua.random}, timeout=25, verify=False)
+        r = requests.get(url, headers={'User-Agent': ua.random}, timeout=60, verify=False)
         r.encoding = r.apparent_encoding
         return r.text # return string
     except Exception as e:
