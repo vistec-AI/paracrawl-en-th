@@ -1,6 +1,6 @@
 
 import argparse
-import json
+import rapidjson as json
 import re, os
 import threading
 from time import sleep
@@ -14,7 +14,7 @@ from traceback import print_exc
 
 import pandas as pd
 import requests
-from tqdm import tqdm
+from tqdm.auto import tqdm
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 from selenium import webdriver
@@ -229,7 +229,7 @@ def run(examples_urls_in_pattern, is_test=False, n_workers=8):
         with ThreadPoolExecutor(max_workers=n_workers) as executor:
 
             # url[0] = <de_url>, url[1] = <en_url>
-            future_to_url = { executor.submit(_substitue_lang_worker, url[0]): url[0]  for url in urls }
+            future_to_url = { executor.submit(_substitue_lang_worker, url): url[0]  for url in urls }
 
             with tqdm(total=len(urls)) as pbar:
                 for future in concurrent.futures.as_completed(future_to_url):
@@ -244,9 +244,14 @@ def run(examples_urls_in_pattern, is_test=False, n_workers=8):
                         # print('result:', result)
                         is_thai, status, match, origin_url_de, origin_url_en, modified_url = result
                 
+                        status = str(status)
+                        
                         pattern_counter[match][status] += 1
                         full_domain = utils.extract_full_domain(modified_url)
 
+                        if urls_with_status[status].get(full_domain) == None:
+                            urls_with_status[status][full_domain] = list()
+                        
                         urls_with_status[status][full_domain].append(
                             {
                                 "is_thai": is_thai,

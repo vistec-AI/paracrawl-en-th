@@ -72,13 +72,6 @@ def extract(file_path, is_test=False):
 
                 dataset[de_domain]['items'][de_url]['number_of_segment'] += 1
 
-                    # 'de_url': de_url,
-                    # 'en_url': en_url,
-                    # 'de_segment': de_segment,
-                    # 'en_segment': en_segment,
-
-                # })
-
                 if len(dataset) > counter['domain_counter']:
                     counter['domain_counter'] += 1           
                     pbar_domains.update(1)
@@ -93,9 +86,7 @@ def extract(file_path, is_test=False):
 def save(output_path, dataset):
     print("Save result to:", output_path)
     with open(output_path, 'w', encoding="utf-8") as f:    
-        json.dump(dataset, f, ensure_ascii=False,
-                  chunk_size=100000,
-                  indent=4)
+        json.dump(dataset, f, ensure_ascii=False, indent=4)
 
 
 if __name__ == '__main__':
