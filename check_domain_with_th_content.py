@@ -252,7 +252,7 @@ def run(examples_urls_in_pattern, is_test=False, n_workers=8):
                         status = str(status)
 
                         pattern_counter[match][status] += 1
-                        full_domain = utils.extract_full_domain(modified_url)
+                        full_domain = utils.extract_full_domain(origin_url_de)
 
                         if urls_with_status[status].get(full_domain) == None:
                             urls_with_status[status][full_domain] = list()
