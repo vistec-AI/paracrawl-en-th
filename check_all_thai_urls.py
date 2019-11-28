@@ -285,7 +285,7 @@ if __name__ == "__main__":
     urls_dataset = load_sample_urls_dataset(args.urls_data_path)
 
     print('2. get url match with HTTP status 200, and contains Thai sentences')
-    examples_urls_in_pattern, counter = get_all_urls_contain_thai_and_status_200(dataset, urls_dataset)
+    examples_urls_in_pattern = get_all_urls_contain_thai_and_status_200(dataset, urls_dataset)
 
     SESSION = requests.Session()
 
