@@ -287,10 +287,6 @@ if __name__ == "__main__":
     print('2. get url match with HTTP status 200, and contains Thai sentences')
     examples_urls_in_pattern = get_all_urls_contain_thai_and_status_200(dataset, urls_dataset)
 
-    SESSION = requests.Session()
-
-    print(counter)
-
     print('\n\n\n')
     print('3. run the http, lang detect')
     run(examples_urls_in_pattern, is_test=args.test, n_workers=args.n_workers)
