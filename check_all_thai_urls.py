@@ -29,7 +29,7 @@ ua = UserAgent(cache=False, use_cache_server=False)
 USER_AGENT = "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:15.0) Gecko/20100101 Firefox/15.0.1"
 
 # 1. Load dataset
-def load_dataset(path):
+def load_dataset():
     with open('./data/en-de.bicleaner07.v2.json', 'r', encoding="utf-8") as f:
         dataset = json.load(f)
         return dataset
@@ -303,7 +303,7 @@ if __name__ == "__main__":
     print('1.1 load dataset')
     dataset = load_dataset()
     print('1.2 load urls dataset')
-    urls_dataset = load_dataset(args.urls_data_path)
+    urls_dataset = load_sample_urls_dataset(args.urls_data_path)
 
     print('2. get url match with HTTP status 200, and contains Thai sentences')
     examples_urls_in_pattern, counter = get_all_urls_contain_thai_and_status_200(dataset, urls_dataset)
