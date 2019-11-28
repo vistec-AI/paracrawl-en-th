@@ -300,11 +300,13 @@ if __name__ == "__main__":
     VERBOSE = args.verbose
     CHROMEDRIVER_PATH = args.chromedriver_path
 
-    print('1. load dataset')
-    dataset = load_dataset(args.urls_data_path)
+    print('1.1 load dataset')
+    dataset = load_dataset()
+    print('1.2 load urls dataset')
+    urls_dataset = load_dataset(args.urls_data_path)
 
     print('2. get url match with HTTP status 200, and contains Thai sentences')
-    examples_urls_in_pattern, counter = get_all_urls_contain_thai_and_status_200(dataset)
+    examples_urls_in_pattern, counter = get_all_urls_contain_thai_and_status_200(dataset, urls_dataset)
 
     SESSION = requests.Session()
 
