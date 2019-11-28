@@ -65,7 +65,7 @@ def load_sample_urls_dataset(path):
 
 def get_all_urls_contain_thai_and_status_200(dataset, urls_dataset):
      
-    urls_item = list()
+    urls_item = defaultdict(list)
     for de_domain, domain_items in urls_dataset['200'].items():
 
         for item in domain_items:
@@ -77,9 +77,9 @@ def get_all_urls_contain_thai_and_status_200(dataset, urls_dataset):
 
                 for item_index, (de_url, item_data) in enumerate(dataset[de_domain]['items'].items()):
 
-
+                    pattern = item_data['pattern']
                     item = (de_url, item_data['corresponding_en_url'])
-                    urls_item.append(item)
+                    urls_item[pattern].append(item)
 
 
                 break
