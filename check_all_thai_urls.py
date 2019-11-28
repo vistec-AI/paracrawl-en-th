@@ -62,27 +62,6 @@ def load_sample_urls_dataset(path):
 
 
 # 2. get URLs
-def get_sample_urls_match_with_patterns(dataset, patterns):
-    counter = Counter()
-    examples_urls_in_pattern = defaultdict(list)
-    for domain_index, (de_domain, domain_data) in tqdm(enumerate((dataset.items()))):
-        
-        i = 0 
-        for pattern in patterns:
-            
-            for item_index, (de_url, item_data) in enumerate(domain_data['items'].items()):
-                # url = url.replace('https://', '').replace('http://', '') # remove http scheme
-                de_url = de_url
-                en_url = item_data['corresponding_en_url']
-                if i == 5:
-                    break
-                if re.search(pattern[0], de_url):
-                    counter[pattern[0]] += 1
-
-                    examples_urls_in_pattern[pattern[0]].append((de_url, en_url))
-                    i+= 1
-    return examples_urls_in_pattern, counter
-
 
 def get_all_urls_contain_thai_and_status_200(dataset, urls_dataset):
      
