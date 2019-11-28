@@ -28,6 +28,20 @@ import utils
 ua = UserAgent(cache=False, use_cache_server=False)
 USER_AGENT = "Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:15.0) Gecko/20100101 Firefox/15.0.1"
 
+
+SUB_LANG_PATTERNS = [
+    # (r'(lang=)(de)', r'\1th'),
+    #(r'(/)(de)(/)', r'\1th\3'),
+    # (r'(/)(de)$', r'\1th'),
+    # (r'^(de)(\.)', r'th\2',), ## lang id as the sub domain
+    # (r'^(german|ger|ge)(\.)', r'th\2'), ## lang id as the sub domain
+    # (r'(/)(german|ger|ge)(/)', r'\1th\3'),
+    #(r'(lang=)((german|ger|ge))', r'\1th'),
+    (r'\bde\b', r'th'),
+    (r'\bge\b', r'th')
+
+]
+
 # 1. Load dataset
 def load_dataset():
     with open('./data/en-de.bicleaner07.v2.json', 'r', encoding="utf-8") as f:
