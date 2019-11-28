@@ -76,10 +76,9 @@ def get_all_urls_contain_thai_and_status_200(dataset, urls_dataset):
                 # dataset[de_domain]['items'].items()
 
                 for item_index, (de_url, item_data) in enumerate(dataset[de_domain]['items'].items()):
-
-                    pattern = item_data['pattern']
-                    item = (de_url, item_data['corresponding_en_url'])
-                    urls_item[pattern].append(item)
+                    pattern = item['pattern']
+                    url_item = (de_url, item_data['corresponding_en_url'])
+                    urls_item[pattern].append(url_item)
 
 
                 break
